@@ -229,6 +229,19 @@ var browserSideFind = function(locators, opt_options) {
     return s;
   };
 
+  var scrollIntoView = function(el) {
+    // scroll to the element
+    el.scrollIntoView(true);
+
+    // shift into view if needed
+    if (!hasCorrectDisplayStatus(element) && opt_options.scrollOffset) {
+      var scrolledY = window.scrollY;
+      if (scrolledY) {
+        window.scroll(0, scrolledY - opt_options.scrollOffset);
+      }
+    }
+  }
+
   // Finds exactly one element globally (or zero if locator.wantZero is set).
   var findGlobal = function(locator) {
     if (locator.direction === 'at') {
@@ -243,7 +256,7 @@ var browserSideFind = function(locators, opt_options) {
     if (!candidateElements.length && options.scroll !== false) {
       var maybeDisplayed = all.filter(isMaybeDisplayed);
       if (maybeDisplayed.length == 1 && shouldAutoScroll(maybeDisplayed[0])) {
-        maybeDisplayed[0].scrollIntoView();
+        scrollIntoView(maybeDisplayed[0]);
         if (hasCorrectDisplayStatus(maybeDisplayed[0])) {
           candidateElements = maybeDisplayed;
         }
@@ -356,7 +369,7 @@ var browserSideFind = function(locators, opt_options) {
         return isMaybeDisplayed(e.element);
       });
       if (maybeDisplayed.length) {
-        maybeDisplayed[0].element.scrollIntoView();
+        scrollIntoView(maybeDisplayed[0].element);
         candidateElements = all.filter(function(e) {
           return hasCorrectDisplayStatus(e.element);
         });
@@ -541,7 +554,7 @@ var browserSideFind = function(locators, opt_options) {
           elementsToString(maybeDisplayed);
     }
     var e = maybeDisplayed[0];
-    e.scrollIntoView();
+    scrollIntoView(e);
     if (!hasCorrectDisplayStatus(e)) {
       throw 'Scrolling to ' + locatorToString(locator) + ' failed. The ' +
           'displayable element did not become displayed after ' +

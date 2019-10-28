@@ -66,25 +66,29 @@ const SLOWNESS_MAP = new Map<Slowness, Timing>([
  */
 export class ActionContext {
   static default() {
-    return new ActionContext([], Slowness.REGULAR, false);
+    return new ActionContext([], Slowness.REGULAR, false, 0);
   }
 
   private constructor(
       readonly locators: ReadonlyArray<PositionalLocator>,
-      readonly slow: Slowness, readonly wantZero: boolean) {}
+      readonly slow: Slowness, readonly wantZero: boolean, public scrollOffset: number) {}
 
   addLocator(position: Position, locator: FlexibleLocator): ActionContext {
     const newLocators = [...this.locators, {position, locator}];
 
-    return new ActionContext(newLocators, this.slow, this.wantZero);
+    return new ActionContext(newLocators, this.slow, this.wantZero, this.scrollOffset);
   }
 
   setSlow(newSlow: Slowness) {
-    return new ActionContext(this.locators, newSlow, this.wantZero);
+    return new ActionContext(this.locators, newSlow, this.wantZero, this.scrollOffset);
   }
 
   setNot(newNot: boolean) {
-    return new ActionContext(this.locators, this.slow, newNot);
+    return new ActionContext(this.locators, this.slow, newNot, this.scrollOffset);
+  }
+
+  setOffset(newOffset: number) {
+    this.scrollOffset = newOffset;
   }
 }
 
@@ -175,7 +179,8 @@ export class ChainedAction {
       Promise<WebElement> {
     const response = await retryingFind(
         this.context.addLocator(Position.GLOBAL, locator).locators,
-        this.timeout(), description, {allowUnseen: true});
+        this.timeout(), description, 
+        { allowUnseen: true, scrollOffset: this.context.scrollOffset });
     if (response === true) {
       throw new Error(
           'An element is expected, but the client side script did ' +
@@ -221,7 +226,10 @@ export class ChainedAction {
     log(description);
 
     const findOptions =
-        Object.assign({wantZero: this.context.wantZero}, options);
+        Object.assign({
+          wantZero: this.context.wantZero,
+          scrollOffset: this.context.scrollOffset,
+        }, options);
 
     const response = await retryingFind(
         this.context.addLocator(Position.GLOBAL, locator).locators,
@@ -331,6 +339,10 @@ export const rightOf = baseAction.rightOf.bind(baseAction);
 export const below = baseAction.below.bind(baseAction);
 
 export const inside = baseAction.inside.bind(baseAction);
+
+export const setScrollOffset = (offset: number) => {
+  defaultAction.setOffset(offset);
+}
 
 /**
  * Types text into the browser (into the currently active element).

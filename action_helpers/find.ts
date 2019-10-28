@@ -21,6 +21,7 @@ export interface BrowserSideOptions {
   wantZero?: boolean;
   enabled?: boolean;
   disabled?: boolean;
+  scrollOffset?: number;
 }
 
 /**
