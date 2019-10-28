@@ -231,15 +231,9 @@ var browserSideFind = function(locators, opt_options) {
 
   var scrollIntoView = function(el) {
     // scroll to the element
-    el.scrollIntoView(true);
-
-    // shift into view if needed
-    if (!hasCorrectDisplayStatus(element) && opt_options.scrollOffset) {
-      var scrolledY = window.scrollY;
-      if (scrolledY) {
-        window.scroll(0, scrolledY - opt_options.scrollOffset);
-      }
-    }
+    const scrollOffset = opt_options.scrollOffset || 0;
+    const top = el.offsetTop - scrollOffset;
+    window.scroll({ top });
   }
 
   // Finds exactly one element globally (or zero if locator.wantZero is set).
